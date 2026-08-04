@@ -178,16 +178,8 @@ function initializeMixpanel() {
         // Track initial page load with comprehensive data - delay to ensure Mixpanel is fully ready
         setTimeout(() => {
           try {
-            // Check if survey overlay exists to determine which page to track
-            const surveyOverlay = document.getElementById('survey-overlay');
-            if (surveyOverlay && surveyOverlay.style.display !== 'none') {
-              surveyTracking.trackPageView('survey');
-              console.log('Initial survey page view tracked');
-            } else {
-              // If no survey, assume we're on photo page
-              surveyTracking.trackPageView('photo_gallery');
-              console.log('Initial photo gallery page view tracked');
-            }
+            surveyTracking.trackPageView('photo_gallery');
+            console.log('Initial photo gallery page view tracked');
           } catch (error) {
             console.error('Error tracking initial page view:', error);
           }
@@ -214,36 +206,8 @@ function initializeMixpanel() {
   }
     
 
-// Simplified mixpanel tracking functions focused only on survey, email, and button clicks
+// Simplified mixpanel tracking functions focused on page views and button clicks
 const surveyTracking = {
-    /**
-     * Get answer text from value
-     */
-    getAnswerText(answer) {
-        const answerMap = {
-            'strongly-agree': 'Strongly agree',
-            'agree': 'Agree', 
-            'neutral': 'Neither Agree or Disagree',
-            'disagree': 'Disagree',
-            'strongly-disagree': 'Strongly Disagree'
-        };
-        return answerMap[answer] || answer;
-    },
-
-    /**
-     * Get numeric scale position for analytics
-     */
-    getScalePosition(answer) {
-        const scaleMap = {
-            'strongly-agree': 5,
-            'agree': 4,
-            'neutral': 3,
-            'disagree': 2,
-            'strongly-disagree': 1
-        };
-        return scaleMap[answer] || 0;
-    },
-
     /**
      * Sanitize property values for Mixpanel
      */
@@ -263,67 +227,14 @@ const surveyTracking = {
     },
 
     /**
-     * Track survey submission - core event
-     */
-    trackSurveySubmission(selectedRating, email) {
-        // Skip tracking in DEBUG mode
-        if (DEBUG_MODE) {
-            return;
-        }
-        
-        if (mixpanelInitialized && typeof mixpanel !== 'undefined') {
-            try {
-                // Validate input data
-                if (!selectedRating || !email || !email.includes('@')) {
-                    console.error('Invalid data for survey submission:', { selectedRating, email });
-                    return;
-                }
-                
-                // Track the survey submission event with cleaned data
-                const eventProperties = {
-                    answer: this.sanitizeValue(selectedRating),
-                    answer_text: this.sanitizeValue(this.getAnswerText(selectedRating)),
-                    email_domain: this.sanitizeValue(email),
-                    question: 'Cadillac is a Brand for Me',
-                    survey_type: 'cadillac_brand_perception',
-                    scale_position: this.getScalePosition(selectedRating)
-                };
-                
-                mixpanel.track('Survey Submitted', eventProperties);
-                
-                // Set user properties with minimal, safe data
-                mixpanel.identify(email);
-                mixpanel.people.set({
-                    '$email': email,
-                    'latest_survey_answer': this.sanitizeValue(selectedRating),
-                    'latest_survey_answer_text': this.sanitizeValue(this.getAnswerText(selectedRating))
-                });
-                
-                // Increment survey completion count
-                mixpanel.people.increment('survey_completion_count', 1);
-                
-                console.log('Survey submission tracked in Mixpanel');
-            } catch (error) {
-                console.error('Error tracking survey submission:', error);
-                if (error && error.status === 0) {
-                    console.warn('Network error - check ad blockers, proxy setup, or connectivity');
-                } else if (error && error.status === 1) {
-                    console.warn('Data format error - check property names, values, and data types');
-                    console.warn('Common causes: invalid dates, reserved property names, oversized data');
-                }
-            }
-        }
-    },
-
-    /**
      * Track page view events
      */
-    trackPageView(pageType, userEmail = null) {
+    trackPageView(pageType) {
         // Skip tracking in DEBUG mode
         if (DEBUG_MODE) {
             return;
         }
-        
+
         if (mixpanelInitialized && typeof mixpanel !== 'undefined') {
             try {
                 const pageViewData = {
@@ -334,26 +245,10 @@ const surveyTracking = {
                     screen_width: window.screen.width,
                     screen_height: window.screen.height,
                     viewport_width: window.innerWidth,
-                    viewport_height: window.innerHeight,
-                    has_email: userEmail ? 'yes' : 'no'
+                    viewport_height: window.innerHeight
                 };
 
-                // Add email if available
-                if (userEmail && userEmail.includes('@')) {
-                    pageViewData.email_domain = this.sanitizeValue(userEmail);
-                }
-
                 mixpanel.track('Page View', pageViewData);
-
-                // Update user profile if email available
-                if (userEmail && userEmail.includes('@')) {
-                    mixpanel.identify(userEmail);
-                    mixpanel.people.set({
-                        '$email': userEmail
-                    });
-                    mixpanel.people.increment(`${pageType}_page_views`, 1);
-                    mixpanel.people.increment('total_page_views', 1);
-                }
 
                 console.log(`${pageType} page view tracked in Mixpanel`);
             } catch (error) {
@@ -368,28 +263,14 @@ const surveyTracking = {
     },
 
     /**
-     * Track photo gallery page view 
-     */
-    trackPhotoPageView(userEmail) {
-        this.trackPageView('photo_gallery', userEmail);
-    },
-
-    /**
-     * Track survey page view
-     */
-    trackSurveyPageView() {
-        this.trackPageView('survey');
-    },
-
-    /**
      * Track social media button clicks
      */
-    trackSocialButtonClick(platform, userEmail = null, buttonId = null) {
+    trackSocialButtonClick(platform, buttonId = null) {
         // Skip tracking in DEBUG mode
         if (DEBUG_MODE) {
             return;
         }
-        
+
         if (mixpanelInitialized && typeof mixpanel !== 'undefined') {
             try {
                 const socialClickData = {
@@ -402,27 +283,10 @@ const surveyTracking = {
                     screen_height: window.screen.height,
                     viewport_width: window.innerWidth,
                     viewport_height: window.innerHeight,
-                    has_email: userEmail ? 'yes' : 'no',
                     timestamp: new Date().toISOString()
                 };
 
-                // Add email if available
-                if (userEmail && userEmail.includes('@')) {
-                    socialClickData.email_domain = this.sanitizeValue(userEmail);
-                }
-
                 mixpanel.track('Share Completed', socialClickData);
-
-                // Update user profile if email available
-                if (userEmail && userEmail.includes('@')) {
-                    mixpanel.identify(userEmail);
-                    mixpanel.people.set({
-                        '$email': userEmail,
-                        '$last_seen': new Date()
-                    });
-                    mixpanel.people.increment(`${platform}_clicks`, 1);
-                    mixpanel.people.increment('total_social_clicks', 1);
-                }
 
                 console.log(`${platform} button click tracked in Mixpanel`);
             } catch (error) {
@@ -475,37 +339,6 @@ const surveyTracking = {
             margin-top: 25vh !important;
         }
          
-        /* Survey Overlay Styles */
-        #survey-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #000000;
-            z-index: 100;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding: 0 2vw;
-            box-sizing: border-box;
-            display: block;
-        }
-         
-        #survey-container {
-            max-width: min(90vw, 600px);
-            width: 100%;
-            text-align: center;
-            color: white;
-            margin: 0 auto;
-            padding: 4vh 0;
-            box-sizing: border-box;
-            min-height: 80vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        
         /* Logo Div Styles */
         .cadillac-logo {
             width: 100%;
@@ -518,253 +351,6 @@ const surveyTracking = {
             object-fit: contain;
             display: block;
             margin: 0 auto;
-        }
-         
-         #survey-overlay .survey-header {
-             margin-bottom: min(5vh, 40px);
-         }
-         
-         #survey-overlay .survey-logo {
-             width: min(8vw, 60px);
-             height: min(8vw, 60px);
-             margin: 0 auto min(4vh, 30px);
-             background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="white"/><text x="50" y="50" text-anchor="middle" dy=".3em" font-family="serif" font-size="20" fill="white">CADILLAC</text></svg>') no-repeat center;
-             background-size: contain;
-             display: none;
-         }
-         
-         #survey-overlay .survey-title {
-             font-family: "CadillacGothicWide", "CadillacGothic", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-             font-size: 14px !important;
-             letter-spacing: 5px !important;
-             font-weight: 100 !important;
-             color: #cccccc !important;
-             margin: 0 0 min(3vh, 20px) 0 !important;
-             text-transform: uppercase !important;
-             line-height: 1.2 !important;
-         }
-         
-         #survey-overlay .survey-subtitle {
-             font-family: "CadillacGothic", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-             font-size: 12px !important;
-             letter-spacing: 4px !important;
-             color: #cccccc !important;
-             margin: 0 0 min(2vh, 20px) 0 !important;
-             text-transform: uppercase !important;
-         }
-         
-         #survey-overlay .email-section {
-             margin: 0 0 30px 0 !important;
-             width: 100% !important;
-             display: flex !important;
-             justify-content: center !important;
-             align-items: center !important;
-         }
-         
-         #survey-overlay .email-section label {
-             display: none !important;
-         }
-         
-         #survey-overlay .email-section input[type="email"] {
-             width: 100% !important;
-             max-width: min(65vw, 350px) !important;
-             min-width: min(65vw, 350px) !important;
-             flex: 0 0 auto !important;
-             font-size: 12px !important;
-             padding: 6px !important;
-             border: 2px solid white !important;
-             border-radius: 0 !important;
-             color: white !important;
-             background: transparent !important;
-             transition: all 0.2s ease !important;
-             box-sizing: border-box !important;
-             font-family: "CadillacGothic", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-             text-align: center !important;
-             letter-spacing: clamp(0.5px, 0.2vw, 1px) !important;
-         }
-         
-         #survey-overlay .email-section input[type="email"]::placeholder {
-             color: rgba(255, 255, 255, 0.7) !important;
-             text-transform: lowercase !important;
-         }
-         
-        #survey-overlay .email-section input[type="email"]:focus {
-            outline: none !important;
-            border-color: white !important;
-            background: rgba(255, 255, 255, 0.1) !important;
-        }
-        
-        #survey-overlay .email-section input[type="email"].has-content {
-            background: rgba(255, 255, 255, 0.2) !important;
-        }
-         
-         #survey-overlay .survey-question {
-             margin-bottom: min(2vh, 20px) !important;
-         }
-         
-         #survey-overlay .survey-question h2 {
-             font-family: "CadillacGothic", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-             font-size: 12px !important;
-             font-weight: normal !important;
-             color: #cccccc !important;
-             line-height: 1.4 !important;
-             width: 30vw !important;
-             text-align: center !important;
-             margin: 0 auto 2vh auto !important;
-             letter-spacing: clamp(0.5px, 0.2vw, 1px) !important;
-         }
-         
-         #survey-overlay .survey-options {
-             display: flex !important;
-             flex-direction: column !important;
-             gap: min(1.5vh, 8px) !important;
-             max-width: min(70vw, 400px) !important;
-             margin: 0 auto !important;
-         }
-         
-         #survey-overlay .survey-option {
-             position: relative !important;
-         }
-         
-         #survey-overlay .survey-option input[type="radio"] {
-             display: none !important;
-         }
-         
-         #survey-overlay .survey-option label {
-             display: block !important;
-             font-size: 12px !important;
-             padding: 6px !important;
-             background: transparent !important;
-             border: 2px solid white !important;
-             border-radius: 0 !important;
-             cursor: pointer !important;
-             transition: all 0.2s ease !important;
-             font-family: "CadillacGothic", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-             color: white !important;
-             letter-spacing: clamp(0.5px, 0.2vw, 1px) !important;
-             text-align: center !important;
-             width: 100% !important;
-             max-width: min(65vw, 350px) !important;
-             margin: 0 auto !important;
-             margin-bottom: 15px !important;
-             box-sizing: border-box !important;
-         }
-         
-        #survey-overlay .survey-option:hover label {
-            background: rgba(255, 255, 255, 0.1) !important;
-            opacity: 0.8 !important;
-        }
-        
-        #survey-overlay .survey-option:active label {
-            opacity: 0.8 !important;
-        }
-         
-        #survey-overlay .survey-option input[type="radio"]:checked + label {
-            background: rgba(255, 255, 255, 0.2) !important;
-            color: white !important;
-            font-weight: normal !important;
-        }
-         
-         #survey-overlay .option-letter {
-             display: none !important;
-         }
-         
-         #survey-overlay .option-text {
-             font-size: clamp(12px, 2vw, 14px) !important;
-             color: inherit !important;
-         }
-         
-         #survey-overlay .submit-button {
-            width: 100% !important;
-            max-width: min(85vw, 500px) !important;
-            padding: min(2vh, 15px) min(4vw, 25px) !important;
-            background: transparent !important;
-            color: rgba(255, 255, 255, 0.5) !important;
-            border: 2px solid rgba(255, 255, 255, 0.5) !important;
-            border-radius: 0 !important;
-            font-size: 11px !important;
-            font-weight: normal !important;
-            cursor: not-allowed !important;
-            transition: all 0.2s ease !important;
-            margin: min(2vh, 15px) auto 0 !important;
-            font-family: "CadillacGothic", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-            letter-spacing: 2px !important;
-            text-transform: uppercase !important;
-            display: block !important;
-        }
-        
-        #survey-overlay .submit-button.enabled {
-            background: transparent !important;
-            color: white !important;
-            border-color: white !important;
-            cursor: pointer !important;
-        }
-        
-        #survey-overlay .submit-button.enabled:hover {
-            background: rgba(255, 255, 255, 0.2) !important;
-            color: white !important;
-            transform: none !important;
-        }
-        
-        #survey-overlay .submit-button.enabled:active {
-            opacity: 0.8 !important;
-        }
-        
-        /* Animation for submit button click */
-        #survey-overlay .submit-button.submitting,
-        #survey-overlay .submit-button.submitting:hover {
-            background: white !important;
-            opacity: 1 !important;
-            color: black !important;
-            border-color: white !important;
-            transition: all 0.3s ease !important;
-            cursor: wait !important;
-        }
-        
-        /* Loading state for submit button */
-        #survey-overlay .submit-button.loading,
-        #survey-overlay .submit-button.loading:hover {
-            background: transparent !important;
-            color: white !important;
-            border-color: white !important;
-            cursor: wait !important;
-            pointer-events: none !important;
-        }
-        
-        /* Animation for dots */
-        @keyframes loadingDots {
-            0%, 20% { opacity: 0; }
-            50% { opacity: 1; }
-            80%, 100% { opacity: 0; }
-        }
-        
-        .loading-dots span {
-            animation: loadingDots 1.4s infinite;
-            animation-fill-mode: both;
-        }
-        
-        .loading-dots span:nth-child(1) { animation-delay: 0s; }
-        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-        
-        #survey-overlay .survey-disclaimer {
-            position: relative !important;
-            width: 100% !important;
-            font-family: "CadillacGothic", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-            font-size: clamp(8px, 1.5vw, 10px) !important;
-            color: rgba(255, 255, 255, 0.7) !important;
-            background: rgba(0, 0, 0, 0.8) !important;
-            padding: min(2vh, 15px) min(3vw, 20px) !important;
-            line-height: 1.3 !important;
-            text-align: center !important;
-            margin: 2vh auto 0 auto !important;
-            z-index: 101 !important;
-            box-sizing: border-box !important;
-            max-width: min(90vw, 600px) !important;
-        }
-        
-        #survey-overlay .hidden {
-            display: none !important;
         }
          
          /* Main Gallery Page Styles */
@@ -795,16 +381,6 @@ const surveyTracking = {
              transition: opacity 0.5s ease !important;
          }
 
-         body#i1xr .cadillac-logo-survey {
-             position: relative !important;
-             top: auto !important;
-             left: auto !important;
-             width: 100% !important;
-             text-align: center !important;
-             flex-shrink: 0 !important;
-        }
-         
-         body#i1xr .cadillac-logo-survey img,
          body#i1xr .cadillac-logo img {
              width: 100px !important;
              object-fit: contain !important;
@@ -1029,17 +605,11 @@ const surveyTracking = {
                 padding: 0 !important;
             }
 
-            body#i1xr .cadillac-logo-survey img,
             body#i1xr .cadillac-logo img {
                 padding: 0 !important;
                 margin: 7vh auto 0 auto !important;
             }
-            
-            #survey-overlay {
-                background-size: min(95vw, 250px);
-                padding: 0 1vw;
-            }
-            
+
             body#i1xr {
                 background-size: min(80vw, 200px) !important;
             }
@@ -1058,10 +628,6 @@ const surveyTracking = {
 
             body#i1xr #photo-container {
                 padding: 0 min(2vw, 15px) !important;
-            }
-            
-            body#i1xr #survey-overlay .survey-header {
-                margin-bottom: min(3vh, 40px) !important;
             }
             
             body#i1xr #title {
@@ -1113,81 +679,15 @@ const surveyTracking = {
                 padding: min(2vh, 15px) !important;
             }
             
-            #survey-container {
-                padding-top: auto !important;
-                margin-top: auto !important;
-                margin-bottom: auto !important;
-                max-height: 85vh !important;
-            }
-            
-            #survey-overlay .survey-title {
-                font-size: 14px !important;
-                letter-spacing: 5px !important;
-                font-weight: 100 !important;
-                color: #eeeeee !important;
-                line-height: 1.5em !important;
-            }
-            
-            #survey-overlay .survey-subtitle {
-                font-size: 12px !important;
-                letter-spacing: 4px !important;
-                color: #eeeeee !important;
-            }
-            
-            #survey-overlay .survey-question h2 {
-                font-size: 12px !important;
-                width: 60vw !important;
-                text-align: center !important;
-                margin: 0 auto 2vh auto !important;
-            }
-            
-            #survey-overlay .survey-options {
-                gap: min(0.8vh, 6px) !important;
-                max-width: min(70vw, 300px) !important;
-            }
-            
-            #survey-overlay .survey-option label {
-                font-size: 12px !important;
-                padding: 5px !important;
-                max-width: min(70vw, 280px) !important;
-                margin-bottom: 10px !important;
-            }
-            
-            #survey-overlay .email-section input[type="email"] {
-                font-size: 12px !important;
-                padding: 5px !important;
-                max-width: min(70vw, 300px) !important;
-                min-width: min(70vw, 300px) !important;
-                flex: 0 0 auto !important;
-                border: 2px solid #ffffff !important;
-            }
-            
-            #survey-overlay .submit-button {
-                font-size: 12px !important;
-                padding: min(1.5vh, 15px) min(3vw, 20px) !important;
-                letter-spacing: 3px !important;
-                max-width: min(80vw, 400px) !important;
-                margin-top: 4vh !important;
-                border: 2px solid rgba(255, 255, 255, 0.5) !important;
-            }
-            
-            #survey-overlay .survey-disclaimer {
-                font-size: clamp(6px, 2.5vw, 8px) !important;
-                padding: min(1vh, 10px) min(1.5vw, 12px) !important;
-                max-height: 10vh !important;
-                line-height: 1.2 !important;
-            }
         }
 
         @media (max-aspect-ratio: 9/16) {
-            body#i1xr .cadillac-logo-survey img,
             body#i1xr .cadillac-logo img {
                 margin: 7vh auto 0 auto !important;
             }
         }
 
         @media (max-width: 400px) and (max-aspect-ratio: 3/4) {
-            body#i1xr .cadillac-logo-survey img,
             body#i1xr .cadillac-logo img {
                 margin: 3vh auto 0 auto !important;
             }
@@ -1339,27 +839,7 @@ function clearTimeContent() {
     }
 }
 
-// Function to set up initial video state (paused at frame 1)
-function setupInitialVideoState() {
-    const video = document.querySelector('video.clv-photo');
-    if (video) {
-        // Override autoplay and loop attributes
-        video.autoplay = false;
-        video.loop = false;
-        video.removeAttribute('autoplay');
-        video.removeAttribute('loop');
-        
-        // Pause the video and set to first frame
-        video.pause();
-        video.currentTime = 0;
-        
-        console.log('Video set to initial state: paused at frame 1, no autoplay, no loop');
-    } else {
-        console.log('Video element with class clv-photo not found for initial setup');
-    }
-}
-
-// Function to control video playback (called when submit button is clicked)
+// Function to control video playback (called on page load)
 function setupVideoControls() {
     const video = document.querySelector('video.clv-photo');
     if (video) {
@@ -1406,371 +886,130 @@ function addViewportMetaTag() {
     }
 }
 
-// Global variable to track download state
-let videoDownloadState = {
-    isDownloading: false,
-    isCompleted: false,
-    progress: 0
-};
-
-// Survey functionality
-function initializeSurvey() {
-     // Create survey overlay
-     const surveyOverlay = document.createElement('div');
-     surveyOverlay.id = 'survey-overlay';
-     
-         surveyOverlay.innerHTML = `
-        <div class="cadillac-logo-survey">
-            <img src="https://cdn.jsdelivr.net/gh/zqyoiv/728-cadi-curator@main/asset/Cadillac-Logo_white_small.png" alt="Cadillac Logo">
-        </div>
-        <div id="survey-container">
-            <div class="survey-header">
-                <div class="survey-logo"></div>
-                <h1 class="survey-title">Your US Open<br>Theme Art Is Ready</h1>
-                <p class="survey-subtitle">Please enter your email</p>
-            </div>
-
-             <div class="email-section">
-                 <input type="email" id="email-input" placeholder="example@info.com">
-             </div>
-
-             <div class="survey-question">
-                 <h2>Please rate the extent to which you agree with the following: <br><b>'Cadillac is a brand for me'</b></h2>
-                 <div class="survey-options">
-                     <div class="survey-option">
-                         <input type="radio" id="strongly-agree" name="brand-rating" value="strongly-agree">
-                         <label for="strongly-agree">Strongly Agree</label>
-                     </div>
-                     <div class="survey-option">
-                         <input type="radio" id="agree" name="brand-rating" value="agree">
-                         <label for="agree">Agree</label>
-                     </div>
-                     <div class="survey-option">
-                         <input type="radio" id="neutral" name="brand-rating" value="neutral">
-                         <label for="neutral">Neither Agree or Disagree</label>
-                     </div>
-                     <div class="survey-option">
-                         <input type="radio" id="disagree" name="brand-rating" value="disagree">
-                         <label for="disagree">Disagree</label>
-                     </div>
-                     <div class="survey-option">
-                         <input type="radio" id="strongly-disagree" name="brand-rating" value="strongly-disagree">
-                         <label for="strongly-disagree">Strongly Disagree</label>
-                     </div>
-                 </div>
-             </div>
-
-             <button type="button" class="submit-button" id="submit-survey">Submit and View Theme Art</button>
-         </div>
-         <div class="survey-disclaimer">
-            Your email will not be shared with third parties or used for marketing or promotional purposes. Your US Open theme artwork will not be used for marketing or promotional purposes, and will be available until September 14, 2025.
-        </div>
-     `;
-
-     // Add survey to page
-     document.body.appendChild(surveyOverlay);
-
-     // Get form elements
-     const radioButtons = surveyOverlay.querySelectorAll('input[name="brand-rating"]');
-     const emailInput = surveyOverlay.querySelector('#email-input');
-     const submitButton = surveyOverlay.querySelector('#submit-survey');
-
-     // Function to check if form is complete
-     function checkFormComplete() {
-         const hasSelection = Array.from(radioButtons).some(radio => radio.checked);
-         const hasEmail = emailInput.value.trim() !== '' && emailInput.validity.valid;
-
-         if (hasSelection && hasEmail) {
-             submitButton.classList.add('enabled');
-             submitButton.disabled = false;
-         } else {
-             submitButton.classList.remove('enabled');
-             submitButton.disabled = true;
-         }
-     }
-
-     // Add event listeners
-     radioButtons.forEach(radio => {
-         radio.addEventListener('change', function() {
-             checkFormComplete();
-         });
-     });
-
-                 emailInput.addEventListener('input', function() {
-       // Toggle background based on whether there's content
-       if (emailInput.value.trim() !== '') {
-           emailInput.classList.add('has-content');
-       } else {
-           emailInput.classList.remove('has-content');
-       }
-       checkFormComplete();
-   });
-
-    emailInput.addEventListener('blur', function() {
-        checkFormComplete();
-    });
-
-    // Add click event listener to trigger handleFileDownload callback
-    emailInput.addEventListener('click', async function() {
-        try {
-            console.log('Email input clicked - calling Curator handleFileDownload()');
-            
-            // Set download state to starting
-            videoDownloadState.isDownloading = true;
-            videoDownloadState.isCompleted = false;
-            videoDownloadState.progress = 0;
-            
-            // Call the existing Curator handleFileDownload function
-            if (typeof handleFileDownload === 'function' && typeof photo !== 'undefined' && photo.download) {
-                await handleFileDownload(photo.download, {
-                    onProgress: ({ chunkLength, receivedLength, contentLength }) => {
-                        videoDownloadState.progress = Math.round(receivedLength/contentLength*100);
-                        console.log(`Download progress: ${receivedLength}/${contentLength} bytes (${videoDownloadState.progress}%)`);
-                    }
-                });
-                console.log('File download completed');
-                
-                // Mark download as completed
-                videoDownloadState.isDownloading = false;
-                videoDownloadState.isCompleted = true;
-                videoDownloadState.progress = 100;
-            } else {
-                console.warn('handleFileDownload function or photo.download not available');
-                // If download function is not available, mark as completed anyway
-                videoDownloadState.isDownloading = false;
-                videoDownloadState.isCompleted = true;
-                videoDownloadState.progress = 100;
-            }
-            
-        } catch (error) {
-            console.error('Error in email input click handler:', error);
-            // Mark download as failed/completed so user can still proceed
-            videoDownloadState.isDownloading = false;
-            videoDownloadState.isCompleted = true;
-            videoDownloadState.progress = 100;
-        }
-    });
-
-         // Handle survey submission
-    submitButton.addEventListener('click', function() {
-        if (submitButton.classList.contains('enabled')) {
-            // Get selected values
-            const selectedRating = Array.from(radioButtons).find(radio => radio.checked)?.value;
-            const email = emailInput.value.trim();
-
-            // Track only the completed survey submission to mixpanel
-            surveyTracking.trackSurveySubmission(selectedRating, email);
-
-            console.log('Survey submitted:', { rating: selectedRating, email: email });
-
-            // Check if video is still downloading
-            if (videoDownloadState.isDownloading || !videoDownloadState.isCompleted) {
-                // Show loading state
-                submitButton.classList.add('loading');
-                submitButton.innerHTML = 'Please wait<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>';
-                
-                // Check download status every 500ms
-                const checkDownloadStatus = setInterval(() => {
-                    if (videoDownloadState.isCompleted && !videoDownloadState.isDownloading) {
-                        clearInterval(checkDownloadStatus);
-                        proceedToPhotoPage();
-                    }
-                }, 500);
-                
-                console.log('Waiting for video download to complete...');
-            } else {
-                // Video is already downloaded, proceed immediately
-                proceedToPhotoPage();
-            }
-            
-            function proceedToPhotoPage() {
-                // Add submitting animation class
-                submitButton.classList.remove('loading');
-                submitButton.classList.add('submitting');
-                submitButton.innerHTML = 'Submit and View Theme Art';
-                
-                // Wait 1 second for animation, then proceed with redirect
-                setTimeout(() => {
-                    // Hide survey overlay with fade effect
-                    surveyOverlay.style.transition = 'opacity 0.3s ease';
-                    surveyOverlay.style.opacity = '0';
-
-                    setTimeout(() => {
-                        surveyOverlay.remove();
-                        // Add logo to photo page after survey is removed
-                        addLogoToPhotoPage();
-                        // Show video page elements with fade-in effect
-                        showVideoPageElements();
-                        // Clear time div content so CSS can handle the text
-                        clearTimeContent();
-                        // Setup video controls (restart, no loop, pause when ended)
-                        setupVideoControls();
-                        // Track photo page view
-                        surveyTracking.trackPhotoPageView(email);
-                        // Setup social media button tracking
-                        setupSocialMediaTracking(email);
-                    }, 300);
-                }, 1000); // 1 second delay for animation
-            }
-        }
-    });
-
-         // Initial check
-    checkFormComplete();
-}
+// Preserved for possible future reuse: a download-prefetch pattern that used to run
+// when the (now-removed) survey email input was clicked, to warm the download ahead
+// of time. Not currently wired up to anything.
+//
+// let videoDownloadState = {
+//     isDownloading: false,
+//     isCompleted: false,
+//     progress: 0
+// };
+//
+// async function prefetchDownload() {
+//     try {
+//         videoDownloadState.isDownloading = true;
+//         videoDownloadState.isCompleted = false;
+//         videoDownloadState.progress = 0;
+//
+//         if (typeof handleFileDownload === 'function' && typeof photo !== 'undefined' && photo.download) {
+//             await handleFileDownload(photo.download, {
+//                 onProgress: ({ chunkLength, receivedLength, contentLength }) => {
+//                     videoDownloadState.progress = Math.round(receivedLength/contentLength*100);
+//                     console.log(`Download progress: ${receivedLength}/${contentLength} bytes (${videoDownloadState.progress}%)`);
+//                 }
+//             });
+//             videoDownloadState.isDownloading = false;
+//             videoDownloadState.isCompleted = true;
+//             videoDownloadState.progress = 100;
+//         } else {
+//             videoDownloadState.isDownloading = false;
+//             videoDownloadState.isCompleted = true;
+//             videoDownloadState.progress = 100;
+//         }
+//     } catch (error) {
+//         videoDownloadState.isDownloading = false;
+//         videoDownloadState.isCompleted = true;
+//         videoDownloadState.progress = 100;
+//     }
+// }
 
 // Startup code - inject Mixpanel script and initialize everything
+function initializePhotoPage() {
+    addLogoToPhotoPage();
+    showVideoPageElements();
+    clearTimeContent();
+    setupVideoControls();
+    replaceSocialIcons();
+    setupSocialMediaTracking();
+}
+
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
-        // Add viewport meta tag first
         addViewportMetaTag();
         injectSurveyStyles();
-        // Check if the URL contains the ?debug=true query parameter
-if (new URLSearchParams(window.location.search).get('debug') === 'true') {
-    // Save the original console.log function
-    const originalConsoleLog = console.log;
 
-    // Override console.log
-    console.log = function (...args) {
-        // Call the original console.log to ensure logs still appear in the console
-        originalConsoleLog.apply(console, args);
-
-        // Find the survey-title element
-        const surveyTitleElement = document.querySelector('.survey-title');
-        if (surveyTitleElement) {
-            // Append the logged message to the survey-title element
-            const logMessage = args.map(arg => (typeof arg === 'object' ? JSON.stringify(arg) : arg)).join(' ');
-            surveyTitleElement.innerHTML += `<br>${logMessage}`;
-        }
-    };
-}
-        // Set up initial video state (paused at frame 1)
-        setTimeout(setupInitialVideoState, 100);
-        
         injectMixpanelScript().then(() => {
             initializeMixpanel();
-            initializeSurvey();
         }).catch(error => {
             console.error('Failed to inject Mixpanel script:', error);
-            // Still initialize survey even if Mixpanel fails
-            initializeSurvey();
         });
 
-        // Replace social media icons with black background, white fill versions
-        replaceSocialIcons();
-        
-        // Clear time div content after a delay to ensure DOM is ready
-        setTimeout(clearTimeContent, 500);
-        
-        // Setup social media tracking with delay for direct photo page loads
-        setTimeout(() => {
-            const surveyOverlay = document.getElementById('survey-overlay');
-            if (!surveyOverlay || surveyOverlay.style.display === 'none') {
-                // If we're on photo page directly, setup social tracking and show elements
-                setupSocialMediaTracking();
-                showVideoPageElements();
-            }
-        }, 2000);
+        initializePhotoPage();
     });
 } else {
     // DOM is already loaded
-    // Add viewport meta tag first
     addViewportMetaTag();
     injectSurveyStyles();
-    
-    // Set up initial video state (paused at frame 1)
-    setTimeout(setupInitialVideoState, 100);
-    
+
     injectMixpanelScript().then(() => {
         initializeMixpanel();
-        initializeSurvey();
     }).catch(error => {
         console.error('Failed to inject Mixpanel script:', error);
-        // Still initialize survey even if Mixpanel fails
-        initializeSurvey();
     });
 
-    // Replace social media icons with black background, white fill versions
-    replaceSocialIcons();
-    
-    // Clear time div content after a delay to ensure DOM is ready
-    setTimeout(clearTimeContent, 500);
-    
-    // Setup social media tracking with delay for direct photo page loads
-    setTimeout(() => {
-        const surveyOverlay = document.getElementById('survey-overlay');
-        if (!surveyOverlay || surveyOverlay.style.display === 'none') {
-            // If we're on photo page directly, setup social tracking and show elements
-            setupSocialMediaTracking();
-            showVideoPageElements();
-        }
-    }, 2000);
+    initializePhotoPage();
 }
 
 // Function to set up social media button tracking
-function setupSocialMediaTracking(userEmailFromSurvey = null) {
-    // Store user email from survey for tracking purposes
-    let userEmail = userEmailFromSurvey;
-    
-    // If no email provided, try to get from survey input
-    if (!userEmail) {
-        try {
-            const emailInput = document.querySelector('#email-input');
-            if (emailInput && emailInput.value) {
-                userEmail = emailInput.value.trim();
-            }
-        } catch (error) {
-            console.log('Could not retrieve user email for social tracking');
-        }
-    }
-    
+function setupSocialMediaTracking() {
     // Add click event listeners for social media buttons
     setTimeout(() => {
         // TikTok button (i2cwn)
         const tiktokButton = document.getElementById('i2cwn');
         if (tiktokButton && !tiktokButton.dataset.trackingAdded) {
             tiktokButton.addEventListener('click', function() {
-                surveyTracking.trackSocialButtonClick('tiktok', userEmail, 'i2cwn');
+                surveyTracking.trackSocialButtonClick('tiktok', 'i2cwn');
             });
             tiktokButton.dataset.trackingAdded = 'true';
             console.log('TikTok button tracking added');
         }
-        
+
         // Instagram button (iok7r)
         const instagramButton = document.getElementById('iok7r');
         if (instagramButton && !instagramButton.dataset.trackingAdded) {
             instagramButton.addEventListener('click', function() {
-                surveyTracking.trackSocialButtonClick('instagram', userEmail, 'iok7r');
+                surveyTracking.trackSocialButtonClick('instagram', 'iok7r');
             });
             instagramButton.dataset.trackingAdded = 'true';
             console.log('Instagram button tracking added');
         }
-        
+
         // X (Twitter) button (i5jm2)
         const xButton = document.getElementById('i5jm2');
         if (xButton && !xButton.dataset.trackingAdded) {
             xButton.addEventListener('click', function() {
-                surveyTracking.trackSocialButtonClick('x_twitter', userEmail, 'i5jm2');
+                surveyTracking.trackSocialButtonClick('x_twitter', 'i5jm2');
             });
             xButton.dataset.trackingAdded = 'true';
             console.log('X/Twitter button tracking added');
         }
-        
+
         // Download button (ip0zp)
         const downloadButton = document.getElementById('ip0zp');
         if (downloadButton && !downloadButton.dataset.trackingAdded) {
             downloadButton.addEventListener('click', function() {
-                surveyTracking.trackSocialButtonClick('download', userEmail, 'ip0zp');
+                surveyTracking.trackSocialButtonClick('download', 'ip0zp');
             });
             downloadButton.dataset.trackingAdded = 'true';
             console.log('Download button tracking added');
         }
-        
+
         // Web Share button (clv-click-id="web-share")
         const webShareButton = document.querySelector('[clv-click-id="web-share"]');
         if (webShareButton && !webShareButton.dataset.trackingAdded) {
             webShareButton.addEventListener('click', function() {
-                surveyTracking.trackSocialButtonClick('tiktok', userEmail, 'web-share');
+                surveyTracking.trackSocialButtonClick('tiktok', 'web-share');
             });
             webShareButton.dataset.trackingAdded = 'true';
             console.log('Web Share button tracking added');
