@@ -230,7 +230,7 @@ const surveyTracking = {
      * Track page view events
      */
     trackPageView(pageType) {
-        // Skip tracking in DEBUG mode
+        // Skip tracking in DEBUG mode 
         if (DEBUG_MODE) {
             return;
         }
