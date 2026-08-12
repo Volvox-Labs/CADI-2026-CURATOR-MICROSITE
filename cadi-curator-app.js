@@ -886,43 +886,223 @@ function addViewportMetaTag() {
     }
 }
 
-// Preserved for possible future reuse: a download-prefetch pattern that used to run
-// when the (now-removed) survey email input was clicked, to warm the download ahead
-// of time. Not currently wired up to anything.
-//
-// let videoDownloadState = {
-//     isDownloading: false,
-//     isCompleted: false,
-//     progress: 0
-// };
-//
-// async function prefetchDownload() {
-//     try {
-//         videoDownloadState.isDownloading = true;
-//         videoDownloadState.isCompleted = false;
-//         videoDownloadState.progress = 0;
-//
-//         if (typeof handleFileDownload === 'function' && typeof photo !== 'undefined' && photo.download) {
-//             await handleFileDownload(photo.download, {
-//                 onProgress: ({ chunkLength, receivedLength, contentLength }) => {
-//                     videoDownloadState.progress = Math.round(receivedLength/contentLength*100);
-//                     console.log(`Download progress: ${receivedLength}/${contentLength} bytes (${videoDownloadState.progress}%)`);
-//                 }
-//             });
-//             videoDownloadState.isDownloading = false;
-//             videoDownloadState.isCompleted = true;
-//             videoDownloadState.progress = 100;
-//         } else {
-//             videoDownloadState.isDownloading = false;
-//             videoDownloadState.isCompleted = true;
-//             videoDownloadState.progress = 100;
-//         }
-//     } catch (error) {
-//         videoDownloadState.isDownloading = false;
-//         videoDownloadState.isCompleted = true;
-//         videoDownloadState.progress = 100;
-//     }
-// }
+// Styles for the mandatory "start download" dialog and the linear progress
+// bar that takes the place of the share buttons while the video is fetching.
+function injectDownloadFlowStyles() {
+    const styles = `
+        #start-download-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4vw;
+            box-sizing: border-box;
+        }
+
+        #start-download-modal .start-download-card {
+            background: #111111;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            padding: min(4vh, 30px) min(6vw, 30px);
+            max-width: min(85vw, 360px);
+            width: 100%;
+            box-sizing: border-box;
+            text-align: center;
+            color: white;
+            font-family: "CadillacGothic", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        #start-download-modal .start-download-title {
+            font-size: 13px;
+            letter-spacing: 1px;
+            line-height: 1.5;
+            margin: 0 0 min(3vh, 20px) 0;
+            color: #eeeeee;
+        }
+
+        #start-download-modal .start-download-button {
+            width: 100%;
+            padding: min(2vh, 14px) min(4vw, 20px);
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+            border-radius: 0;
+            font-size: 12px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        #start-download-modal .start-download-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .download-progress-wrap {
+            width: 100%;
+            max-width: min(85vw, 400px);
+            margin: min(4vh, 30px) auto;
+            text-align: center;
+            color: white;
+            font-family: "CadillacGothic", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            box-sizing: border-box;
+        }
+
+        .download-progress-label {
+            font-size: 12px;
+            letter-spacing: 1px;
+            color: #eeeeee;
+            margin-bottom: 10px;
+        }
+
+        .download-progress-track {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .download-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: #ffffff;
+            transition: width 0.15s ease;
+        }
+
+        .download-progress-save-button {
+            margin-top: min(2vh, 16px);
+            padding: min(1.5vh, 12px) min(4vw, 20px);
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+            font-size: 12px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-family: inherit;
+        }
+    `;
+
+    const styleElement = document.createElement('style');
+    styleElement.id = 'download-flow-styles';
+    styleElement.appendChild(document.createTextNode(styles));
+    document.head.appendChild(styleElement);
+}
+
+// Mandatory dialog shown on load. There is no skip/close - tapping the CTA is
+// the only way forward, since that tap's user-activation is what makes the
+// download fetch below (and every later share-button tap) work reliably.
+function showStartDownloadModal() {
+    const modal = document.createElement('div');
+    modal.id = 'start-download-modal';
+    modal.innerHTML = `
+        <div class="start-download-card">
+            <p class="start-download-title">Tap below to prepare your Theme Art for download</p>
+            <button type="button" class="start-download-button" id="start-download-button">Start My Download</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    document.getElementById('start-download-button').addEventListener('click', beginDownloadFlow);
+}
+
+function removeStartDownloadModal() {
+    const modal = document.getElementById('start-download-modal');
+    if (modal) modal.remove();
+}
+
+// Spends the modal tap's user-activation on the real fetch, so that by the
+// time the (now revealed) share buttons are tapped for real, sharing.js's
+// fileCache is already warm and handleFileDownload resolves instantly -
+// preserving that later click's own fresh activation through to
+// navigator.share()/downloadFile().
+async function beginDownloadFlow() {
+    removeStartDownloadModal();
+
+    const socialContainer = document.getElementById('social-container');
+    if (socialContainer) socialContainer.style.display = 'none';
+
+    const overlay = showLoadingOverlay();
+    try {
+        if (typeof handleFileDownload === 'function' && typeof photo !== 'undefined' && photo.download) {
+            await handleFileDownload(photo.download, {
+                onProgress: ({ receivedLength, contentLength }) => {
+                    overlay.update(receivedLength / contentLength);
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Error downloading shareable:', error);
+    } finally {
+        await overlay.finalize?.();
+        if (socialContainer) socialContainer.style.display = '';
+    }
+}
+
+// Overrides sharing.js's default circular-spinner showLoadingOverlay with a
+// linear, left-to-right progress bar. Must be assigned (not declared as a
+// top-level `function`) from inside DOMContentLoaded-gated init code: this
+// script runs before the deferred sharing.js does, so a top-level declaration
+// here would get overwritten once sharing.js's own version runs afterward.
+function installCustomLoadingOverlay() {
+    window.showLoadingOverlay = function() {
+        const wrap = document.createElement('div');
+        wrap.className = 'download-progress-wrap';
+        wrap.innerHTML = `
+            <div class="download-progress-label">Preparing your download (0%)</div>
+            <div class="download-progress-track">
+                <div class="download-progress-fill"></div>
+            </div>
+        `;
+
+        const socialContainer = document.getElementById('social-container');
+        if (socialContainer && socialContainer.parentNode) {
+            socialContainer.parentNode.insertBefore(wrap, socialContainer);
+        } else {
+            document.body.appendChild(wrap);
+        }
+
+        const label = wrap.querySelector('.download-progress-label');
+        const fill = wrap.querySelector('.download-progress-fill');
+
+        function update(value) {
+            const v = Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0;
+            fill.style.width = `${Math.round(v * 100)}%`;
+            label.textContent = `Preparing your download (${Math.round(v * 100)}%)`;
+        }
+
+        function close() {
+            if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
+        }
+
+        function finalize() {
+            if (!navigator.userActivation?.isActive) {
+                close();
+                return Promise.resolve();
+            }
+
+            return new Promise(resolve => {
+                const btn = document.createElement('button');
+                btn.textContent = 'Save File';
+                btn.className = 'download-progress-save-button';
+                wrap.appendChild(btn);
+
+                const handler = () => {
+                    btn.removeEventListener('click', handler);
+                    close();
+                    resolve();
+                };
+                btn.addEventListener('click', handler, { once: true });
+            });
+        }
+
+        return { update, finalize };
+    };
+}
 
 // Startup code - inject Mixpanel script and initialize everything
 function initializePhotoPage() {
@@ -932,6 +1112,9 @@ function initializePhotoPage() {
     setupVideoControls();
     replaceSocialIcons();
     setupSocialMediaTracking();
+    injectDownloadFlowStyles();
+    installCustomLoadingOverlay();
+    showStartDownloadModal();
 }
 
 if (document.readyState === 'loading') {
