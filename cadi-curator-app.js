@@ -388,36 +388,6 @@ const surveyTracking = {
              margin: 2vh auto 0 auto !important;
          }
          
-         body#i1xr .photo-page-title {
-             text-align: center !important;
-             width: 100% !important;
-             color: white !important;
-         }
-         
-         body#i1xr .photo-page-title h1 {
-             color: #eeeeee !important;
-             font-family: "CadillacGothicWide", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-             font-size: 14px !important;
-             font-weight: normal !important;
-             letter-spacing: 3px !important;
-             text-transform: uppercase !important;
-             margin: 0 0 min(1vh, 10px) 0 !important;
-             line-height: 1.2 !important;
-             text-align: center !important;
-         }
-         
-         body#i1xr .photo-page-title h2 {
-             color: #eeeeee !important;
-             font-family: "CadillacGothicWide", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-             font-size: 14px !important;
-             font-weight: normal !important;
-             letter-spacing: 3px !important;
-             text-transform: uppercase !important;
-             margin: 0 0 min(3vh, 20px) 0 !important;
-             line-height: 1.2 !important;
-             text-align: center !important;
-         }
-
          body#i1xr #container {
              background: #000000 !important;
              text-align: center !important;
@@ -448,12 +418,7 @@ const surveyTracking = {
          }
          
          body#i1xr #header-container {
-             background: #000000 !important;
-             padding: 0 0 min(4vh, 30px) 0 !important;
-             text-align: center !important;
-             margin-bottom: min(3vh, 20px) !important;
-             width: 100% !important;
-             display: block !important;
+             display: none !important;
          }
          
          body#i1xr #title {
@@ -507,10 +472,144 @@ const surveyTracking = {
              margin: min(4vh, 30px) auto !important;
              display: block !important;
              border-radius: clamp(4px, 1vw, 8px) !important;
- 
+
              object-fit: contain !important;
          }
-         
+
+         /* Video Preview Frame */
+         body#i1xr .video-frame {
+             position: relative !important;
+             width: 100% !important;
+             max-width: min(70vw, 420px) !important;
+             margin: min(4vh, 30px) auto !important;
+             border: 1px solid rgba(255, 255, 255, 0.5) !important;
+             border-radius: clamp(4px, 1vw, 8px) !important;
+             overflow: hidden !important;
+             background: #000000 !important;
+         }
+
+         body#i1xr .video-frame .clv-photo {
+             max-width: 100% !important;
+             margin: 0 !important;
+             border-radius: 0 !important;
+         }
+
+         body#i1xr .video-frame .video-preview-label {
+             position: absolute !important;
+             left: 0 !important;
+             right: 0 !important;
+             bottom: 0 !important;
+             margin: 0 !important;
+             background: linear-gradient(to top, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0)) !important;
+             color: #eeeeee !important;
+             font-family: "CadillacGothicWide", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+             font-size: 11px !important;
+             letter-spacing: 3px !important;
+             text-transform: uppercase !important;
+             text-align: center !important;
+             padding: min(3vh, 18px) 0 min(1.5vh, 10px) 0 !important;
+             pointer-events: none !important;
+         }
+
+         body#i1xr .video-frame .video-play-toggle {
+             position: absolute !important;
+             top: 50% !important;
+             left: 50% !important;
+             transform: translate(-50%, -50%) !important;
+             width: min(15vw, 56px) !important;
+             height: min(15vw, 56px) !important;
+             min-width: 44px !important;
+             min-height: 44px !important;
+             border-radius: 50% !important;
+             background: rgba(0, 0, 0, 0.55) !important;
+             border: none !important;
+             display: flex !important;
+             align-items: center !important;
+             justify-content: center !important;
+             cursor: pointer !important;
+             padding: 0 !important;
+             transition: opacity 0.2s ease !important;
+         }
+
+         body#i1xr .video-frame .video-play-toggle svg {
+             width: 40% !important;
+             height: 40% !important;
+             fill: white !important;
+             margin-left: 2px !important;
+         }
+
+         body#i1xr .video-frame.is-playing .video-play-toggle {
+             opacity: 0 !important;
+             pointer-events: none !important;
+         }
+
+         /* Arrival Moment Heading */
+         body#i1xr .arrival-heading {
+             color: #eeeeee !important;
+             font-family: "CadillacGothicWide", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+             font-size: clamp(15px, 3.2vw, 20px) !important;
+             font-weight: normal !important;
+             letter-spacing: 2px !important;
+             line-height: 1.6 !important;
+             text-transform: uppercase !important;
+             text-align: center !important;
+             margin: min(4vh, 26px) auto min(3vh, 20px) auto !important;
+             max-width: min(80vw, 380px) !important;
+         }
+
+         /* Download + Share (hidden until download is ready) */
+         body#i1xr #download-share-wrap {
+             width: 100% !important;
+             max-width: min(85vw, 380px) !important;
+             margin: 0 auto !important;
+             display: flex !important;
+             flex-direction: column !important;
+             align-items: center !important;
+         }
+
+         body#i1xr #download-share-wrap.is-hidden {
+             display: none !important;
+         }
+
+         body#i1xr .arrival-download-button {
+             display: block !important;
+             width: 100% !important;
+             padding: min(2vh, 14px) min(4vw, 20px) !important;
+             background: transparent !important;
+             color: white !important;
+             border: 2px solid white !important;
+             border-radius: 0 !important;
+             font-size: 12px !important;
+             letter-spacing: 2px !important;
+             text-transform: uppercase !important;
+             text-decoration: none !important;
+             cursor: pointer !important;
+             font-family: "CadillacGothic", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+             box-sizing: border-box !important;
+             margin: 0 0 min(3vh, 20px) 0 !important;
+         }
+
+         body#i1xr .arrival-download-button:hover {
+             background: rgba(255, 255, 255, 0.15) !important;
+         }
+
+         body#i1xr #download-share-wrap #social-container {
+             margin-top: 0 !important;
+             padding: 0 !important;
+         }
+
+         /* Hashtag / Handle Footer (always visible) */
+         body#i1xr .arrival-hashtag-footer {
+             color: #eeeeee !important;
+             font-family: "CadillacGothicWide", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+             font-size: 12px !important;
+             letter-spacing: 2px !important;
+             line-height: 1.9 !important;
+             text-transform: uppercase !important;
+             text-align: center !important;
+             margin: min(3vh, 20px) auto 0 auto !important;
+         }
+
          body#i1xr #igm34 {
              display: none !important;
          }
@@ -533,7 +632,7 @@ const surveyTracking = {
          body#i1xr a.clv-button.circle {
              background-color: black !important;
              background: black !important;
-             border: none !important;
+             border: 1px solid rgba(255, 255, 255, 0.6) !important;
              width: min(12vw, 70px) !important;
              height: min(12vw, 70px) !important;
              min-width: 50px !important;
@@ -615,41 +714,24 @@ const surveyTracking = {
             }
             
             
-            body#i1xr #header-container {
-                background: #000000 !important;
-                padding: 0 !important;
-                text-align: center !important;
-                width: 100% !important;
-                display: block !important;
-            }
-            body#i1xr #header-container.clv-row {
-               min-height: 40px !important;
-            }
-
             body#i1xr #photo-container {
                 padding: 0 min(2vw, 15px) !important;
             }
-            
+
             body#i1xr #title {
                 font-size: 14px !important;
                 letter-spacing: clamp(0.5px, 0.1vw, 1px) !important;
             }
 
-            body#i1xr .photo-page-title {
-                margin-top: 9vh !important;
-            }
-            
-            body#i1xr #time {
-                font-size:12px !important;
-                margin: min(1.5vh, 12px) auto !important;
-            }
-            
-            body#i1xr .clv-photo {
+            body#i1xr .video-frame {
                 max-width: 85vw !important;
-                max-height: 45Svh !important;
-                margin: 0 !important;
+                margin: min(2vh, 16px) auto !important;
             }
-            
+
+            body#i1xr .video-frame .clv-photo {
+                max-height: 45svh !important;
+            }
+
             body#i1xr #social-container {
                 gap: 0 !important;
                 padding: 0 !important;
@@ -711,57 +793,6 @@ const surveyTracking = {
             z-index: -1 !important;
         }
         
-        /* Force Web-Share Button to Display */
-        [clv-click-id="web-share"],
-        .social-share {
-            display: flex !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            background: rgba(255, 255, 255, 0.1) !important;
-            border: 2px solid rgba(255, 255, 255, 0.3) !important;
-            border-radius: 50% !important;
-            width: 60px !important;
-            height: 60px !important;
-            position: relative !important;
-            align-items: center !important;
-            justify-content: center !important;
-        }
-        
-        [clv-click-id="web-share"]:hover,
-        .social-share:hover {
-            background: rgba(255, 255, 255, 0.2) !important;
-            border-color: rgba(255, 255, 255, 0.5) !important;
-            transform: scale(1.1) !important;
-            transition: all 0.3s ease !important;
-        }
-        
-        [clv-click-id="web-share"] svg,
-        .social-share svg {
-            width: 30px !important;
-            height: 30px !important;
-        }
-        
-        /* Force Download Button to Display */
-        #ip0zp,
-        .social-download {
-            display: flex !important;
-            visibility: visible !important;
-        }
-        
-        #ip0zp:hover,
-        .social-download:hover {
-            background: rgba(255, 255, 255, 0.2) !important;
-            border-color: rgba(255, 255, 255, 0.5) !important;
-            transform: scale(1.1) !important;
-            transition: all 0.3s ease !important;
-        }
-        
-        #ip0zp svg,
-        .social-download svg {
-            fill: white !important;
-            width: 30px !important;
-            height: 30px !important;
-        }
          `;
          
          // Create style element
@@ -811,21 +842,17 @@ function addLogoToPhotoPage() {
         return;
     }
     
-    // Create logo and title container
+    // Create logo container
     const logoDiv = document.createElement('div');
     logoDiv.className = 'cadillac-logo';
     logoDiv.innerHTML = `
         <img src="https://cdn.jsdelivr.net/gh/zqyoiv/728-cadi-curator@main/asset/Cadillac-Logo_white_small.png" alt="Cadillac Logo">
-        <div class="photo-page-title">
-            <h1>THANKS FOR JOINING</h1>
-            <h2>CADILLAC AT THE US OPEN</h2>
-        </div>
     `;
-    
+
     // Insert at the beginning of body
     document.body.insertBefore(logoDiv, document.body.firstChild);
-    
-    console.log('Logo and title added to photo page');
+
+    console.log('Logo added to photo page');
 }
 
 // Function to clear time div content and let CSS handle the text
@@ -843,27 +870,68 @@ function clearTimeContent() {
 function setupVideoControls() {
     const video = document.querySelector('video.clv-photo');
     if (video) {
-        // Remove loop attribute and set controls
+        // Remove loop attribute and native controls - the custom play/pause
+        // toggle from buildVideoPreviewFrame() replaces native UI
         video.loop = false;
         video.removeAttribute('loop');
-        
+        video.removeAttribute('controls');
+
         // Add event listener for when video ends
         video.addEventListener('ended', function() {
             video.pause();
             video.currentTime = video.duration;   // keep last frame (iOS quirk-safe)
-            video.removeAttribute('controls');  // hide native UI
         });
-        
+
         // Restart the video
         video.currentTime = 0;
         video.play().catch(error => {
             console.log('Video play failed:', error);
         });
-        
+
         console.log('Video controls setup: no loop, will pause when ended, restarted playback');
     } else {
         console.log('Video element with class clv-photo not found');
     }
+}
+
+// Wraps the existing video in a bordered frame with a "Video Preview" label
+// and a custom play/pause toggle, replacing the native video controls
+function buildVideoPreviewFrame() {
+    const video = document.querySelector('video.clv-photo');
+    if (!video) return;
+
+    const wrapper = video.parentElement;
+    if (!wrapper) return;
+    wrapper.classList.add('video-frame');
+
+    const label = document.createElement('div');
+    label.className = 'video-preview-label';
+    label.textContent = 'Video Preview';
+    wrapper.appendChild(label);
+
+    const playToggle = document.createElement('button');
+    playToggle.type = 'button';
+    playToggle.className = 'video-play-toggle';
+    playToggle.setAttribute('aria-label', 'Play video');
+    playToggle.innerHTML = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="white"></path></svg>';
+    wrapper.appendChild(playToggle);
+
+    function syncPlayState() {
+        wrapper.classList.toggle('is-playing', !video.paused && !video.ended);
+    }
+
+    playToggle.addEventListener('click', function() {
+        if (video.paused || video.ended) {
+            video.play().catch(() => {});
+        } else {
+            video.pause();
+        }
+    });
+
+    video.addEventListener('play', syncPlayState);
+    video.addEventListener('pause', syncPlayState);
+    video.addEventListener('ended', syncPlayState);
+    syncPlayState();
 }
 
 // Function to add viewport meta tag
@@ -973,19 +1041,6 @@ function injectDownloadFlowStyles() {
             background: #ffffff;
             transition: width 0.15s ease;
         }
-
-        .download-progress-save-button {
-            margin-top: min(2vh, 16px);
-            padding: min(1.5vh, 12px) min(4vw, 20px);
-            background: transparent;
-            color: white;
-            border: 2px solid white;
-            font-size: 12px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            cursor: pointer;
-            font-family: inherit;
-        }
     `;
 
     const styleElement = document.createElement('style');
@@ -1016,15 +1071,16 @@ function removeStartDownloadModal() {
 }
 
 // Spends the modal tap's user-activation on the real fetch, so that by the
-// time the (now revealed) share buttons are tapped for real, sharing.js's
-// fileCache is already warm and handleFileDownload resolves instantly -
-// preserving that later click's own fresh activation through to
-// navigator.share()/downloadFile().
+// time the (now revealed) download button/share icons are tapped for real,
+// sharing.js's fileCache is already warm and handleFileDownload resolves
+// instantly - preserving that later click's own fresh activation through to
+// navigator.share()/downloadFile(). The download button + share icons stay
+// hidden behind the progress bar until the fetch completes.
 async function beginDownloadFlow() {
     removeStartDownloadModal();
 
-    const socialContainer = document.getElementById('social-container');
-    if (socialContainer) socialContainer.style.display = 'none';
+    const shareWrap = document.getElementById('download-share-wrap');
+    if (shareWrap) shareWrap.classList.add('is-hidden');
 
     const overlay = showLoadingOverlay();
     try {
@@ -1038,8 +1094,8 @@ async function beginDownloadFlow() {
     } catch (error) {
         console.error('Error downloading shareable:', error);
     } finally {
-        await overlay.finalize?.();
-        if (socialContainer) socialContainer.style.display = '';
+        overlay.close();
+        if (shareWrap) shareWrap.classList.remove('is-hidden');
     }
 }
 
@@ -1059,9 +1115,9 @@ function installCustomLoadingOverlay() {
             </div>
         `;
 
-        const socialContainer = document.getElementById('social-container');
-        if (socialContainer && socialContainer.parentNode) {
-            socialContainer.parentNode.insertBefore(wrap, socialContainer);
+        const shareWrap = document.getElementById('download-share-wrap');
+        if (shareWrap && shareWrap.parentNode) {
+            shareWrap.parentNode.insertBefore(wrap, shareWrap);
         } else {
             document.body.appendChild(wrap);
         }
@@ -1079,29 +1135,66 @@ function installCustomLoadingOverlay() {
             if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
         }
 
-        function finalize() {
-            if (!navigator.userActivation?.isActive) {
-                close();
-                return Promise.resolve();
-            }
-
-            return new Promise(resolve => {
-                const btn = document.createElement('button');
-                btn.textContent = 'Save File';
-                btn.className = 'download-progress-save-button';
-                wrap.appendChild(btn);
-
-                const handler = () => {
-                    btn.removeEventListener('click', handler);
-                    close();
-                    resolve();
-                };
-                btn.addEventListener('click', handler, { once: true });
-            });
-        }
-
-        return { update, finalize };
+        return { update, close };
     };
+}
+
+// Builds the "Download or Share Your Arrival Moment" heading, the wide
+// Download button, and trims/reorders the social icons down to Instagram,
+// TikTok, X - matching the approved layout. The download button + icon row
+// are wrapped together and start hidden; beginDownloadFlow() reveals the
+// wrap once the file is ready. The heading and hashtag footer are always
+// visible.
+function buildDownloadShareLayout() {
+    const photoContainer = document.getElementById('photo-container');
+    const socialContainer = document.getElementById('social-container');
+    if (!photoContainer || !socialContainer) return;
+
+    // Trim social-container down to Instagram, TikTok, X and put them in
+    // that order
+    const keepIds = ['iok7r', 'i2cwn', 'i5jm2'];
+    Array.from(socialContainer.children).forEach(child => {
+        if (!keepIds.includes(child.id)) {
+            child.remove();
+        }
+    });
+    keepIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) socialContainer.appendChild(el);
+    });
+
+    const heading = document.createElement('div');
+    heading.className = 'arrival-heading';
+    heading.innerHTML = 'Download or<br>Share Your<br>Arrival Moment';
+
+    // Mirrors the share attributes that used to live on the circular
+    // download icon, so the existing sharing.js share(this) handler works
+    // unchanged on this restyled button
+    const downloadButton = document.createElement('a');
+    downloadButton.id = 'arrival-download-button';
+    downloadButton.className = 'arrival-download-button';
+    downloadButton.textContent = 'Download';
+    downloadButton.setAttribute('title', 'Download');
+    downloadButton.setAttribute('clv-click-id', 'download');
+    downloadButton.setAttribute('share-type', 'download');
+    downloadButton.setAttribute('share-fallback', 'download');
+    downloadButton.setAttribute('onclick', 'share(this)');
+    downloadButton.setAttribute('role', 'button');
+    downloadButton.setAttribute('tabindex', '0');
+
+    const wrap = document.createElement('div');
+    wrap.id = 'download-share-wrap';
+    wrap.className = 'is-hidden';
+    wrap.appendChild(downloadButton);
+    wrap.appendChild(socialContainer);
+
+    const footer = document.createElement('div');
+    footer.className = 'arrival-hashtag-footer';
+    footer.innerHTML = '#CadillacUSOpen<br>@Cadillac';
+
+    photoContainer.appendChild(heading);
+    photoContainer.appendChild(wrap);
+    photoContainer.appendChild(footer);
 }
 
 // Startup code - inject Mixpanel script and initialize everything
@@ -1110,7 +1203,9 @@ function initializePhotoPage() {
     showVideoPageElements();
     clearTimeContent();
     setupVideoControls();
+    buildVideoPreviewFrame();
     replaceSocialIcons();
+    buildDownloadShareLayout();
     setupSocialMediaTracking();
     injectDownloadFlowStyles();
     installCustomLoadingOverlay();
@@ -1178,65 +1273,20 @@ function setupSocialMediaTracking() {
             console.log('X/Twitter button tracking added');
         }
 
-        // Download button (ip0zp)
-        const downloadButton = document.getElementById('ip0zp');
+        // Download button (arrival-download-button)
+        const downloadButton = document.getElementById('arrival-download-button');
         if (downloadButton && !downloadButton.dataset.trackingAdded) {
             downloadButton.addEventListener('click', function() {
-                surveyTracking.trackSocialButtonClick('download', 'ip0zp');
+                surveyTracking.trackSocialButtonClick('download', 'arrival-download-button');
             });
             downloadButton.dataset.trackingAdded = 'true';
             console.log('Download button tracking added');
         }
-
-        // Web Share button (clv-click-id="web-share")
-        const webShareButton = document.querySelector('[clv-click-id="web-share"]');
-        if (webShareButton && !webShareButton.dataset.trackingAdded) {
-            webShareButton.addEventListener('click', function() {
-                surveyTracking.trackSocialButtonClick('tiktok', 'web-share');
-            });
-            webShareButton.dataset.trackingAdded = 'true';
-            console.log('Web Share button tracking added');
-        }
     }, 1000); // Delay to ensure buttons are rendered
 }
 
-// Function to replace Instagram, X, and Facebook icons with black background, white fill versions
+// Function to replace Instagram, X, and TikTok icons with black background, white fill versions
 function replaceSocialIcons() {
-    // Check for web-share button and add if missing
-    let webShareButton = document.querySelector('[clv-click-id="web-share"]');
-    
-    if (!webShareButton) {
-        // Add web-share button at the top of social container
-        const socialContainer = document.getElementById('social-container');
-        if (socialContainer) {
-            const webShareElement = document.createElement('a');
-            webShareElement.setAttribute('clv-click-id', 'web-share');
-            webShareElement.setAttribute('title', 'Web Share');
-            webShareElement.setAttribute('share-title', '📷');
-            webShareElement.setAttribute('share-message', 'Take a look at my photo!');
-            webShareElement.setAttribute('onclick', 'share(this)');
-            webShareElement.className = 'clv-button circle social social-share';
-            webShareElement.innerHTML = '<div src="https://cdn.curatorlive.com/svgs/g2/icons8-share-50-2.svg"></div>';
-            
-            // Insert at the beginning of social container
-            socialContainer.insertBefore(webShareElement, socialContainer.firstChild);
-            webShareButton = webShareElement;
-        }
-    }
-    
-    // Update web-share button SVG (whether it was just created or already existed)
-    if (webShareButton) {
-        const webShareDiv = webShareButton.querySelector('div');
-        if (webShareDiv) {
-            webShareDiv.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" width="50px" height="50px" viewBox="0 0 96 96" fill="none">
-                    <rect width="96" height="96" rx="21" fill="black"></rect>
-                    <path d="M73.31 25.7456C72.785 25.4743 72.274 25.1769 71.7788 24.8545C70.3389 23.9025 69.0186 22.7808 67.8465 21.5135C64.9139 18.158 63.8186 14.7538 63.4151 12.3705H63.4313C63.0943 10.3921 63.2337 9.11214 63.2547 9.11214H49.8974V60.7624C49.8974 61.4558 49.8974 62.1412 49.8682 62.8185C49.8682 62.9027 49.8601 62.9805 49.8553 63.0712C49.8553 63.1085 49.8553 63.1474 49.8472 63.1863C49.8472 63.196 49.8472 63.2057 49.8472 63.2154C49.7064 65.0686 49.1123 66.8588 48.1173 68.4286C47.1222 69.9983 45.7566 71.2994 44.1407 72.2175C42.4565 73.1757 40.5517 73.6782 38.614 73.6757C32.3906 73.6757 27.3468 68.6011 27.3468 62.334C27.3468 56.0669 32.3906 50.9923 38.614 50.9923C39.7921 50.9912 40.9629 51.1766 42.083 51.5415L42.0992 37.9412C38.6989 37.502 35.2444 37.7722 31.9538 38.7348C28.6631 39.6975 25.6077 41.3317 22.9802 43.5343C20.678 45.5346 18.7425 47.9214 17.2608 50.5872C16.6969 51.5594 14.5695 55.4658 14.3119 61.8058C14.1499 65.4044 15.2306 69.1326 15.7458 70.6734V70.7058C16.0699 71.6132 17.3256 74.7094 19.372 77.3197C21.0221 79.4135 22.9716 81.2527 25.1579 82.7783V82.7459L25.1903 82.7783C31.6567 87.1724 38.8263 86.884 38.8263 86.884C40.0674 86.8338 44.2249 86.884 48.9463 84.6464C54.183 82.1658 57.1642 78.47 57.1642 78.47C59.0688 76.2618 60.5832 73.7452 61.6426 71.0282C62.8513 67.8509 63.2547 64.0401 63.2547 62.5171V35.1155C63.4168 35.2127 65.5749 36.6401 65.5749 36.6401C65.5749 36.6401 68.6842 38.633 73.5352 39.9309C77.0155 40.8544 81.7045 41.0488 81.7045 41.0488V27.7887C80.0615 27.9669 76.7255 27.4485 73.31 25.7456Z" fill="white"></path>
-                </svg>
-            `;
-        }
-    }
-
     // Replace Instagram icon
     const instagramButton = document.getElementById('iok7r');
     if (instagramButton) {
@@ -1279,33 +1329,12 @@ function replaceSocialIcons() {
 
 
 
-    // Replace Download icon
-    const downloadButton = document.getElementById('ip0zp');
-    if (downloadButton) {
-        const downloadDiv = downloadButton.querySelector('div');
-        if (downloadDiv) {
-            downloadDiv.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" version="1.1" viewBox="0 0 72 72" width="50px" height="50px">
-                    <defs>
-                        <style>
-                            .st0 {
-                                fill: #fff;
-                            }
-                        </style>
-                    </defs>
-                    <path class="st0" d="M39.39,1.8c.56.18,1.6,1.06,1.6,1.67v28.25h9.02s.77.38.88.46c.85.66,1.05,2.06.37,2.92l-14.74,16.92c-1.13,1.42-2.75,1.42-3.88,0l-14.74-16.92c-.65-.84-.51-2.18.31-2.85.1-.08.88-.53.94-.53h9.02V3.47c0-.61,1.04-1.49,1.6-1.67h9.62Z"/>
-                    <path class="st0" d="M11.07,48.82v12.82h47.02v-12.82h8.55v17.7c0,1.73-2.44,3.81-4.2,3.68H6.47c-1.66,0-3.94-2.03-3.94-3.68v-17.7h8.55Z"/>
-                </svg>
-            `;
-        }
-    }
-
-    // Replace Email icon with TikTok icon
-    const emailButton = document.getElementById('i2cwn');
-    if (emailButton) {
-        const emailDiv = emailButton.querySelector('div');
-        if (emailDiv) {
-            emailDiv.innerHTML = `
+    // Replace TikTok icon
+    const tiktokIconButton = document.getElementById('i2cwn');
+    if (tiktokIconButton) {
+        const tiktokIconDiv = tiktokIconButton.querySelector('div');
+        if (tiktokIconDiv) {
+            tiktokIconDiv.innerHTML = `
                 <svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" version="1.1" viewBox="0 0 72 72" width="50px" height="50px">
                     <defs>
                         <style>
