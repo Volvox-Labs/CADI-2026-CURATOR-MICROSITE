@@ -906,7 +906,7 @@ function buildVideoPreviewFrame() {
 
     const label = document.createElement('div');
     label.className = 'video-preview-label';
-    label.textContent = 'Video Preview';
+    label.textContent = 'Preview';
     wrapper.appendChild(label);
 
     const playToggle = document.createElement('button');
