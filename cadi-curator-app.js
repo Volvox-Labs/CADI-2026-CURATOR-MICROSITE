@@ -417,7 +417,7 @@ const surveyTracking = {
              flex-shrink: 0 !important;
          }
          
-         body#i1xr #header-container {
+         body#i1xr .event-timestamp {
              display: none !important;
          }
          
@@ -433,35 +433,6 @@ const surveyTracking = {
              text-align: center !important;
              width: 100% !important;
              display: block !important;
-         }
-         
-         body#i1xr #time {
-             color: transparent !important; /* Hide original content */
-             font-size: 0 !important; /* Hide original content */
-             overflow: hidden !important; /* Hide original content */
-             font-family: "CadillacGothic", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-             margin: min(3vh, 20px) auto !important;
-             text-align: center !important;
-             width: 100% !important;
-             display: block !important;
-         }
-         
-         body#i1xr #time::before {
-             content: "Click below" !important;
-             color: white !important;
-             font-size: 12px !important;
-             font-weight: bold !important;
-             text-align: center !important;
-             display: inline !important;
-         }
-         
-         body#i1xr #time::after {
-             content: " to download and share your Theme Art." !important;
-             color: white !important;
-             font-size: 12px !important;
-             font-weight: normal !important;
-             text-align: center !important;
-             display: inline !important;
          }
          
          body#i1xr .clv-photo {
@@ -582,6 +553,7 @@ const surveyTracking = {
              font-size: 12px !important;
              letter-spacing: 2px !important;
              text-transform: uppercase !important;
+             text-align: center !important;
              text-decoration: none !important;
              cursor: pointer !important;
              font-family: "CadillacGothic", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
@@ -1139,6 +1111,63 @@ function installCustomLoadingOverlay() {
     };
 }
 
+// Finds the row of circular social icons regardless of which container id
+// CuratorLive's server-rendered template happens to use for it. Prefers the
+// explicit #social-container id (this repo's local index.html, and any
+// future template that reuses it); otherwise derives the row from whichever
+// known button's parentElement is present, since Instagram/X/Download/TikTok
+// are always direct siblings inside that row no matter what CuratorLive
+// names the row's own wrapper.
+function findSocialRow() {
+    const byId = document.getElementById('social-container');
+    if (byId) return byId;
+
+    const anchorButtonIds = ['iok7r', 'i5jm2', 'ip0zp', 'i2cwn'];
+    for (const id of anchorButtonIds) {
+        const button = document.getElementById(id);
+        if (button && button.parentElement) return button.parentElement;
+    }
+
+    console.warn('CADI curator: could not locate the social icon row - download/share layout will not be built.');
+    return null;
+}
+
+// CuratorLive's live template bakes is="clv-mail-to" onto the TikTok button
+// at parse time; that decision can't be undone at runtime
+// (removeAttribute('is') does not "un-customize" a customized built-in), and
+// the browser hides it forever via bundle.css's :not(:defined) rule since
+// that custom element never actually registers. Fix: replace it in-place
+// with a freshly created plain <a>, which is never customized and therefore
+// always :defined - mirroring Instagram's confirmed-working share pattern.
+// No-ops on local index.html, where this element already has no `is`
+// attribute.
+function ensureTikTokElementIsDefined() {
+    const original = document.getElementById('i2cwn');
+    if (!original || !original.parentNode || !original.hasAttribute('is')) {
+        return original;
+    }
+
+    const replacement = document.createElement('a');
+    Array.from(original.attributes).forEach(attr => {
+        if (attr.name !== 'is') replacement.setAttribute(attr.name, attr.value);
+    });
+
+    replacement.setAttribute('id', 'i2cwn');
+    replacement.setAttribute('clv-click-id', 'tiktok');
+    replacement.setAttribute('title', 'TikTok');
+    replacement.setAttribute('share-type', 'photo');
+    replacement.setAttribute('share-fallback', 'download');
+    replacement.setAttribute('onclick', 'share(this)');
+    replacement.className = original.className.replace('social-email', 'social-tiktok');
+
+    // Preserve the inner div/icon markup so replaceSocialIcons()'s
+    // querySelector('div') swap still has a target on the replacement node.
+    replacement.innerHTML = original.innerHTML;
+
+    original.parentNode.replaceChild(replacement, original);
+    return replacement;
+}
+
 // Builds the "Download or Share Your Arrival Moment" heading, the wide
 // Download button, and trims/reorders the social icons down to Instagram,
 // TikTok, X - matching the approved layout. The download button + icon row
@@ -1146,21 +1175,34 @@ function installCustomLoadingOverlay() {
 // wrap once the file is ready. The heading and hashtag footer are always
 // visible.
 function buildDownloadShareLayout() {
-    const photoContainer = document.getElementById('photo-container');
-    const socialContainer = document.getElementById('social-container');
-    if (!photoContainer || !socialContainer) return;
+    const socialRow = findSocialRow();
+    if (!socialRow || !socialRow.parentElement) return;
+
+    const insertionParent = socialRow.parentElement;
+    // Capture position before the row gets moved into `wrap` below - once
+    // moved, nextSibling/parentElement no longer reflect where it used to sit.
+    const insertionAnchor = socialRow.nextSibling;
+
+    // Normalize the row's id so the #social-container CSS (layout, gap,
+    // centering, mobile overrides) keeps applying no matter what id
+    // CuratorLive's template actually gave this row.
+    if (socialRow.id !== 'social-container') {
+        socialRow.id = 'social-container';
+    }
 
     // Trim social-container down to Instagram, TikTok, X and put them in
-    // that order
+    // that order. Generic allowlist - any other native button (Facebook,
+    // Web Share, the standalone circular Download icon, etc.) is removed
+    // automatically, no per-button special-casing needed.
     const keepIds = ['iok7r', 'i2cwn', 'i5jm2'];
-    Array.from(socialContainer.children).forEach(child => {
+    Array.from(socialRow.children).forEach(child => {
         if (!keepIds.includes(child.id)) {
             child.remove();
         }
     });
     keepIds.forEach(id => {
         const el = document.getElementById(id);
-        if (el) socialContainer.appendChild(el);
+        if (el) socialRow.appendChild(el);
     });
 
     const heading = document.createElement('div');
@@ -1186,15 +1228,17 @@ function buildDownloadShareLayout() {
     wrap.id = 'download-share-wrap';
     wrap.className = 'is-hidden';
     wrap.appendChild(downloadButton);
-    wrap.appendChild(socialContainer);
+    wrap.appendChild(socialRow); // moves the row (now id="social-container") into wrap
 
     const footer = document.createElement('div');
     footer.className = 'arrival-hashtag-footer';
     footer.innerHTML = '#CadillacUSOpen<br>@Cadillac';
 
-    photoContainer.appendChild(heading);
-    photoContainer.appendChild(wrap);
-    photoContainer.appendChild(footer);
+    // Insert exactly where the social row used to sit in its parent, instead
+    // of requiring a specifically-named outer container to exist.
+    insertionParent.insertBefore(heading, insertionAnchor);
+    insertionParent.insertBefore(wrap, insertionAnchor);
+    insertionParent.insertBefore(footer, insertionAnchor);
 }
 
 // Startup code - inject Mixpanel script and initialize everything
@@ -1204,6 +1248,7 @@ function initializePhotoPage() {
     clearTimeContent();
     setupVideoControls();
     buildVideoPreviewFrame();
+    ensureTikTokElementIsDefined();
     replaceSocialIcons();
     buildDownloadShareLayout();
     setupSocialMediaTracking();
