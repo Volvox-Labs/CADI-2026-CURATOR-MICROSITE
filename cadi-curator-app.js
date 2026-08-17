@@ -482,38 +482,6 @@ const surveyTracking = {
              pointer-events: none !important;
          }
 
-         body#i1xr .video-frame .video-play-toggle {
-             position: absolute !important;
-             top: 50% !important;
-             left: 50% !important;
-             transform: translate(-50%, -50%) !important;
-             width: min(15vw, 56px) !important;
-             height: min(15vw, 56px) !important;
-             min-width: 44px !important;
-             min-height: 44px !important;
-             border-radius: 50% !important;
-             background: rgba(0, 0, 0, 0.55) !important;
-             border: none !important;
-             display: flex !important;
-             align-items: center !important;
-             justify-content: center !important;
-             cursor: pointer !important;
-             padding: 0 !important;
-             transition: opacity 0.2s ease !important;
-         }
-
-         body#i1xr .video-frame .video-play-toggle svg {
-             width: 40% !important;
-             height: 40% !important;
-             fill: white !important;
-             margin-left: 2px !important;
-         }
-
-         body#i1xr .video-frame.is-playing .video-play-toggle {
-             opacity: 0 !important;
-             pointer-events: none !important;
-         }
-
          /* Arrival Moment Heading */
          body#i1xr .arrival-heading {
              color: #eeeeee !important;
@@ -842,11 +810,18 @@ function clearTimeContent() {
 function setupVideoControls() {
     const video = document.querySelector('video.clv-photo');
     if (video) {
-        // Remove loop attribute and native controls - the custom play/pause
-        // toggle from buildVideoPreviewFrame() replaces native UI
+        // Remove loop/native controls entirely - there's no play/pause UI
+        // anymore, the video just autoplays once and holds its last frame
         video.loop = false;
         video.removeAttribute('loop');
         video.removeAttribute('controls');
+
+        // Muted is required for autoplay to be reliably allowed without a
+        // prior user gesture, on every browser - CuratorLive's live template
+        // doesn't set the `muted` attribute in its own markup, so this has
+        // to be forced here rather than relied on from the HTML.
+        video.muted = true;
+        video.autoplay = true;
 
         // Add event listener for when video ends
         video.addEventListener('ended', function() {
@@ -866,8 +841,7 @@ function setupVideoControls() {
     }
 }
 
-// Wraps the existing video in a bordered frame with a "Video Preview" label
-// and a custom play/pause toggle, replacing the native video controls
+// Wraps the existing video in a bordered frame with a "Preview" label
 function buildVideoPreviewFrame() {
     const video = document.querySelector('video.clv-photo');
     if (!video) return;
@@ -880,30 +854,6 @@ function buildVideoPreviewFrame() {
     label.className = 'video-preview-label';
     label.textContent = 'Preview';
     wrapper.appendChild(label);
-
-    const playToggle = document.createElement('button');
-    playToggle.type = 'button';
-    playToggle.className = 'video-play-toggle';
-    playToggle.setAttribute('aria-label', 'Play video');
-    playToggle.innerHTML = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="white"></path></svg>';
-    wrapper.appendChild(playToggle);
-
-    function syncPlayState() {
-        wrapper.classList.toggle('is-playing', !video.paused && !video.ended);
-    }
-
-    playToggle.addEventListener('click', function() {
-        if (video.paused || video.ended) {
-            video.play().catch(() => {});
-        } else {
-            video.pause();
-        }
-    });
-
-    video.addEventListener('play', syncPlayState);
-    video.addEventListener('pause', syncPlayState);
-    video.addEventListener('ended', syncPlayState);
-    syncPlayState();
 }
 
 // Function to add viewport meta tag
