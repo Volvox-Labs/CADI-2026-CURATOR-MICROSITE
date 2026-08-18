@@ -673,7 +673,7 @@ const surveyTracking = {
             }
 
             body#i1xr #social-container {
-                gap: 0 !important;
+                gap: 10px !important;
                 padding: 0 !important;
                 margin-top: 2vh !important;
             }
