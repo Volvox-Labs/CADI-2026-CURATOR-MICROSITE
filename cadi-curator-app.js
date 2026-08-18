@@ -979,7 +979,7 @@ function showStartDownloadModal() {
     modal.id = 'start-download-modal';
     modal.innerHTML = `
         <div class="start-download-card">
-            <p class="start-download-title">Tap below to prepare your Theme Art for download</p>
+            <p class="start-download-title">Tap below to prepare your Arrival Moment for download</p>
             <button type="button" class="start-download-button" id="start-download-button">Start My Download</button>
         </div>
     `;
