@@ -14,18 +14,41 @@ const DEBUG_MODE = (() => {
     return hardcodedDebug || urlDebug;
 })();
 
+// Showroom-staff detection. TouchDesigner embeds ?staff=1 in the URL it encodes
+// into the QR code when the operator ticks "Guest is showroom staff" on the
+// tablet, so internal captures stay out of Mixpanel without this site needing
+// any access to the photobooth database.
+//
+// Read here rather than in flag.js on purpose: flag.js holds build-time
+// switches and may not even be loaded in production -- note the
+// `typeof window.AppFlags !== 'undefined'` guard above, which exists precisely
+// because it can be absent. A staff visit must never end up tracked just
+// because a second script failed to load.
+const STAFF_MODE = (() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const staffParam = urlParams.get('staff');
+    return staffParam === 'true' || staffParam === '1';
+})();
+
+// Every Mixpanel gate below keys off this, not DEBUG_MODE. The two are kept
+// separate because staff isn't debug: DEBUG_MODE also drives the verbose console
+// logging, which a staff visit has no reason to switch on.
+const TRACKING_DISABLED = DEBUG_MODE || STAFF_MODE;
+
 // Log debug mode status
 if (DEBUG_MODE) {
     console.log('🐛 DEBUG MODE ENABLED - Mixpanel tracking is DISABLED');
+} else if (STAFF_MODE) {
+    console.log('🏷️ Showroom staff visit - Mixpanel tracking is DISABLED');
 } else {
     console.log('📊 Production mode - Mixpanel tracking is enabled');
 }
 
 // Function to inject Mixpanel script into document head
 function injectMixpanelScript() {
-    // Skip script injection in DEBUG mode
-    if (DEBUG_MODE) {
-        console.log('🐛 DEBUG MODE: Skipping Mixpanel script injection');
+    // Skip script injection when tracking is off (debug or showroom staff)
+    if (TRACKING_DISABLED) {
+        console.log('Tracking disabled: skipping Mixpanel script injection');
         return Promise.resolve();
     }
     
@@ -152,7 +175,7 @@ function injectMixpanelScript() {
 // Initialize Mixpanel
 function initializeMixpanel() {
     // Skip Mixpanel initialization in DEBUG mode
-    if (DEBUG_MODE) {
+    if (TRACKING_DISABLED) {
         console.log('🐛 DEBUG MODE: Skipping Mixpanel initialization');
         return;
     }
@@ -230,8 +253,8 @@ const surveyTracking = {
      * Track page view events
      */
     trackPageView(pageType) {
-        // Skip tracking in DEBUG mode 
-        if (DEBUG_MODE) {
+        // Skip tracking for debug sessions and showroom staff
+        if (TRACKING_DISABLED) {
             return;
         }
 
@@ -266,8 +289,8 @@ const surveyTracking = {
      * Track social media button clicks
      */
     trackSocialButtonClick(platform, buttonId = null) {
-        // Skip tracking in DEBUG mode
-        if (DEBUG_MODE) {
+        // Skip tracking for debug sessions and showroom staff
+        if (TRACKING_DISABLED) {
             return;
         }
 
