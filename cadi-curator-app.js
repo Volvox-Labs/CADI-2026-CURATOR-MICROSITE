@@ -349,12 +349,15 @@ const surveyTracking = {
 
         /* modern browsers (iOS 15.4+, Chrome 108+, Firefox 109+) */
         #container{
-            height: 100dvh;          /* dynamic viewport height – tracks bar show/hide */
-            /* ↓ graceful fallback for anything that doesn’t understand dvh */
-            height: 100vh;           
-            overflow-y: auto;        /* allow vertical scroll when content overflows */
+            /* Let content define the height and let the DOCUMENT scroll.
+               A fixed viewport height here made this a nested scroller, and
+               100vh is the *large* viewport on mobile (measured as if the
+               browser chrome were hidden), so the box was taller than the
+               visible area and its tail was unreachable. min-height keeps the
+               full-screen look on tall pages without ever clipping. */
+            min-height: 100dvh;
+            min-height: 100vh;   /* fallback for no dvh support */
             overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
         }
 
         /* if you use vh elsewhere, switch those too */
@@ -382,8 +385,13 @@ const surveyTracking = {
              font-family: "CadillacGothic", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
              margin: 0 !important;
              padding: 0 !important;
-             height: 100vh !important;
-             overflow: hidden !important;
+             /* The page is the ONE scrolling context. This used to be
+                height:100vh + overflow:hidden, which clipped everything
+                below the fold with no way to reach it -- on a phone that
+                hid the share buttons entirely. */
+             min-height: 100% !important;
+             overflow-x: hidden !important;
+             overflow-y: auto !important;
          }
          
          body#i1xr .event-banner {
@@ -420,10 +428,12 @@ const surveyTracking = {
              flex-direction: column !important;
              align-items: center !important;
              justify-content: flex-start !important;
-             height: 75vh !important;
-             overflow-y: auto !important;
-             overflow-x: hidden !important;
-             -webkit-overflow-scrolling: touch;
+             /* min-height, not height: the container may grow past the
+                viewport and the page scrolls to it. Scrolling deliberately
+                left to the document -- nesting a second scroller here is
+                what stranded the content below it. */
+             min-height: 75vh !important;
+             overflow: visible !important;
              box-sizing: content-box !important;
              opacity: 0 !important;
              transition: opacity 0.5s ease !important;
