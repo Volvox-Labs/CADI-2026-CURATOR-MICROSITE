@@ -1,3 +1,99 @@
+// ---------------------------------------------------------------------------
+// Build stamp
+//
+// The live microsite does not serve this file from this repo. Curator's HTML
+// template loads it from jsDelivr pinned to a *commit SHA*, e.g.
+//   https://cdn.jsdelivr.net/gh/Volvox-Labs/CADI-2026-CURATOR-MICROSITE@768d89f/cadi-curator-app.js
+// so pushing to main changes nothing until that SHA is bumped in the template.
+// A scroll fix once looked "broken in the browser" for exactly this reason --
+// the page was still running a pre-fix commit. This block makes the running
+// build self-identifying so that question is answerable from the page itself.
+//
+// Bump APP_VERSION whenever you change something you'll want to confirm in the
+// field. The ref is derived, not typed: it comes from the URL the browser
+// actually fetched, so it cannot drift from reality the way a hand-edited
+// constant can.
+// ---------------------------------------------------------------------------
+const APP_VERSION = '2026.08.21-1';
+
+const APP_BUILD = (() => {
+    // document.currentScript is only meaningful while a script is evaluating,
+    // which is right now -- this file is loaded as a plain, non-async <script>.
+    // Reading it later (inside DOMContentLoaded) would yield null.
+    const src = (document.currentScript && document.currentScript.src) || '';
+
+    // jsDelivr pins a git ref between the repo and the path: /gh/<owner>/<repo>@<ref>/<file>
+    const refMatch = src.match(/\/gh\/[^/]+\/[^/@]+@([^/]+)\//);
+
+    const build = {
+        version: APP_VERSION,
+        ref: refMatch ? refMatch[1] : 'local',
+        src: src || 'inline-or-local',
+    };
+
+    window.CADI_CURATOR_BUILD = build;
+
+    // Also stamp the DOM: lets you read the version off a device you cannot
+    // attach a console to (inspect <html>, or scrape it from an automated check).
+    document.documentElement.setAttribute('data-cadi-version', build.version);
+    document.documentElement.setAttribute('data-cadi-ref', build.ref);
+
+    // Deliberately not gated behind DEBUG_MODE -- the entire point is to be
+    // able to verify the deployed build on a production page.
+    console.log(
+        `%c CADI curator ${build.version} %c ref=${build.ref}`,
+        'background:#000;color:#fff;font-weight:bold',
+        'color:#888',
+        build.src
+    );
+
+    // The local index.html declares which build it expects. The live Curator
+    // template has no such meta tag, hence the null guard.
+    const expected = document.querySelector('meta[name="cadi-expected-version"]');
+    if (expected && expected.content && expected.content !== build.version) {
+        console.warn(
+            `⚠️ CADI version mismatch: page expects ${expected.content}, ` +
+            `loaded ${build.version} (ref=${build.ref}). ` +
+            `The CDN is probably serving a stale pinned commit.`
+        );
+    }
+
+    return build;
+})();
+
+// On-screen badge for phone/kiosk testing, where there is no console to open.
+// Shown for ?version=1 (or DEBUG_MODE), never in a normal guest session.
+function showVersionBadge() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const versionParam = urlParams.get('version');
+    const wanted = versionParam === 'true' || versionParam === '1';
+
+    if (!wanted && !DEBUG_MODE) {
+        return;
+    }
+    if (document.getElementById('cadi-version-badge')) {
+        return;
+    }
+
+    const badge = document.createElement('div');
+    badge.id = 'cadi-version-badge';
+    badge.textContent = `v${APP_BUILD.version} · ${APP_BUILD.ref}`;
+    badge.style.cssText = [
+        'position:fixed',
+        'bottom:0',
+        'left:0',
+        'z-index:9999',
+        'padding:4px 8px',
+        'background:rgba(0,0,0,0.75)',
+        'color:#0f0',
+        'font:10px/1.4 monospace',
+        'letter-spacing:0.5px',
+        'pointer-events:none',
+    ].join(';');
+
+    document.body.appendChild(badge);
+}
+
 let mixpanelInitialized = false;
 
 // Debug mode detection - check for DEBUG=true URL parameter or flag.js value
@@ -1226,6 +1322,7 @@ function buildDownloadShareLayout() {
 
 // Startup code - inject Mixpanel script and initialize everything
 function initializePhotoPage() {
+    showVersionBadge();
     addLogoToPhotoPage();
     showVideoPageElements();
     clearTimeContent();

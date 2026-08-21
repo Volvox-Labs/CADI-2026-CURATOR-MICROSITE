@@ -118,6 +118,11 @@ window.gtag = gtag;
                  }
          
     </style>
+     <!-- Which cadi-curator-app.js build this page was written against.
+          The app compares it to its own APP_VERSION and console.warns on a
+          mismatch, which is how you catch the CDN serving a stale pinned
+          commit. Bump alongside APP_VERSION. -->
+     <meta name="cadi-expected-version" content="2026.08.21-1">
      <script src="flag.js"></script>
      <script src="cadi-curator-app.js"></script>
 </head>
